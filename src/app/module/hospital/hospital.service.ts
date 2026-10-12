@@ -110,10 +110,3 @@ const deleteHospital = async (id: string): Promise<Hospital> => {
   return result;
 };
 
-export const hospitalService = {
-  createHospital,
-  getAllHospitals,
-  getHospitalById,
-  updateHospital,
-  deleteHospital,
-};

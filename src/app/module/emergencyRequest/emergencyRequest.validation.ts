@@ -26,3 +26,8 @@ const updateStatusZodSchema = z.object({
   }),
 });
 
+export const emergencyRequestValidation = {
+  createEmergencyRequestZodSchema,
+  assignDriverZodSchema,
+  updateStatusZodSchema,
+};
