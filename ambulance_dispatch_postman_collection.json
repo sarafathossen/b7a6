@@ -1,0 +1,284 @@
+{
+  "info": {
+    "name": "Ambulance Dispatch Management System",
+    "description": "Complete Postman Collection for Level 2 Assignment",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sarafat Hossen\",\n  \"email\": \"caller@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"01750187656\",\n  \"role\": \"CALLER\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"caller@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ambulances",
+      "item": [
+        {
+          "name": "Create Ambulance (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleNumber\": \"DHAKA-METRO-CHA-11-2233\",\n  \"type\": \"ICU_AMBULANCE\",\n  \"basePrice\": 3500\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/ambulances", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ambulances"] }
+          }
+        },
+        {
+          "name": "Get All Ambulances",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/ambulances?page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ambulances"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Get Single Ambulance",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/ambulances/AMBULANCE_ID", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ambulances", "AMBULANCE_ID"] }
+          }
+        },
+        {
+          "name": "Update Ambulance (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"basePrice\": 4000,\n  \"isAvailable\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/ambulances/AMBULANCE_ID", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ambulances", "AMBULANCE_ID"] }
+          }
+        },
+        {
+          "name": "Delete Ambulance (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/ambulances/AMBULANCE_ID", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ambulances", "AMBULANCE_ID"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Emergency Requests",
+      "item": [
+        {
+          "name": "Create Request (Caller)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupAddress\": \"Satkhira Sadar Hospital\",\n  \"destinationAddress\": \"Khulna Medical College Hospital\",\n  \"priority\": \"HIGH\",\n  \"totalAmount\": 2500\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/emergency-requests", "host": ["{{baseUrl}}"], "path": ["api", "v1", "emergency-requests"] }
+          }
+        },
+        {
+          "name": "Get My Requests (Caller)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/emergency-requests/my-requests", "host": ["{{baseUrl}}"], "path": ["api", "v1", "emergency-requests", "my-requests"] }
+          }
+        },
+        {
+          "name": "Get All Requests (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/emergency-requests?page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["api", "v1", "emergency-requests"] }
+          }
+        },
+        {
+          "name": "Assign Driver & Ambulance (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"DRIVER_PROFILE_ID\",\n  \"ambulanceId\": \"AMBULANCE_ID\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/emergency-requests/REQUEST_ID/assign", "host": ["{{baseUrl}}"], "path": ["api", "v1", "emergency-requests", "REQUEST_ID", "assign"] }
+          }
+        },
+        {
+          "name": "Update Request Status (Driver/Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/emergency-requests/REQUEST_ID/status", "host": ["{{baseUrl}}"], "path": ["api", "v1", "emergency-requests", "REQUEST_ID", "status"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Initiate bKash Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestId\": \"REQUEST_ID\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/initiate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "initiate"] }
+          }
+        },
+        {
+          "name": "bKash Callback (Execute)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/bkash-callback?paymentID=TEST_ID&status=success&requestId=REQUEST_ID", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "bkash-callback"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Drivers",
+      "item": [
+        {
+          "name": "Create Driver Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"licenseNumber\": \"DL-KHULNA-2026-9901\",\n  \"ambulanceId\": \"AMBULANCE_ID\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/drivers/create-profile", "host": ["{{baseUrl}}"], "path": ["api", "v1", "drivers", "create-profile"] }
+          }
+        },
+        {
+          "name": "Get My Driver Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/drivers/my-profile", "host": ["{{baseUrl}}"], "path": ["api", "v1", "drivers", "my-profile"] }
+          }
+        },
+        {
+          "name": "Get All Drivers (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/drivers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "drivers"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hospitals",
+      "item": [
+        {
+          "name": "Create Hospital (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Satkhira Central Hospital\",\n  \"address\": \"Sadar Hospital Road, Satkhira\",\n  \"contactNumber\": \"01750187656\",\n  \"emergencyUnits\": 6\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/hospitals", "host": ["{{baseUrl}}"], "path": ["api", "v1", "hospitals"] }
+          }
+        },
+        {
+          "name": "Get All Hospitals",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/hospitals?page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["api", "v1", "hospitals"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "me"] }
+          }
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users"] }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,8 @@
-import { Role } from '@prisma/client';
+export type Role = 'CALLER' | 'DRIVER' | 'ADMIN';
 
 export type ILoginUserResponse = {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: {
     id: string;
     name: string;

@@ -1,9 +1,19 @@
-import prisma from '../../lib/prisma';
 import { AmbulanceRequest, Prisma, RequestStatus } from '@prisma/client';
+import prisma from '../../lib/prisma';
 import { IEmergencyRequestFilter } from './emergencyRequest.interface';
 
-// ১. জরুরি রিকোয়েস্ট তৈরি
-const createRequest = async (callerId: string, payload: any): Promise<AmbulanceRequest> => {
+// ১. কলারের নতুন রিকোয়েস্ট তৈরি
+const createEmergencyRequest = async (
+  callerId: string,
+  payload: {
+    pickupAddress: string;
+    destinationAddress: string;
+    priority?: any;
+    totalAmount: number;
+    hospitalId?: string;
+    ambulanceId?: string;
+  }
+): Promise<AmbulanceRequest> => {
   const result = await prisma.ambulanceRequest.create({
     data: {
       callerId,
@@ -13,11 +23,10 @@ const createRequest = async (callerId: string, payload: any): Promise<AmbulanceR
       totalAmount: payload.totalAmount,
       hospitalId: payload.hospitalId || null,
       ambulanceId: payload.ambulanceId || null,
-      status: 'PENDING',
     },
     include: {
       caller: {
-        select: { id: true, name: true, phone: true },
+        select: { id: true, name: true, phone: true, email: true },
       },
     },
   });
@@ -25,23 +34,37 @@ const createRequest = async (callerId: string, payload: any): Promise<AmbulanceR
   return result;
 };
 
-// ২. সব রিকোয়েস্ট ফেচ (পেজিনেশন ও ফিল্টারিং সহ)
-const getAllRequests = async (filters: IEmergencyRequestFilter, options: { page?: number; limit?: number }) => {
-  const { searchTerm, status, priority } = filters;
+// ২. কলারের নিজের সব রিকোয়েস্ট দেখা
+const getMyRequests = async (callerId: string) => {
+  const result = await prisma.ambulanceRequest.findMany({
+    where: { callerId, isDeleted: false },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      driver: {
+        include: {
+          user: { select: { name: true, phone: true } },
+        },
+      },
+      ambulance: true,
+      hospital: true,
+      payment: true,
+    },
+  });
+
+  return result;
+};
+
+// ৩. সব রিকোয়েস্ট ফেচ করা (ADMIN)
+const getAllRequests = async (
+  filters: IEmergencyRequestFilter,
+  options: { page?: number; limit?: number }
+) => {
+  const { status, priority, searchTerm } = filters;
   const page = Number(options.page) || 1;
   const limit = Number(options.limit) || 10;
   const skip = (page - 1) * limit;
 
-  const andConditions: Prisma.AmbulanceRequestWhereInput[] = [{ isDeleted: false }];
-
-  if (searchTerm) {
-    andConditions.push({
-      OR: [
-        { pickupAddress: { contains: searchTerm, mode: 'insensitive' } },
-        { destinationAddress: { contains: searchTerm, mode: 'insensitive' } },
-      ],
-    });
-  }
+  const andConditions: any[] = [{ isDeleted: false }];
 
   if (status) {
     andConditions.push({ status });
@@ -51,14 +74,27 @@ const getAllRequests = async (filters: IEmergencyRequestFilter, options: { page?
     andConditions.push({ priority });
   }
 
+  if (searchTerm) {
+    andConditions.push({
+      OR: [
+        { pickupAddress: { contains: searchTerm, mode: 'insensitive' } },
+        { destinationAddress: { contains: searchTerm, mode: 'insensitive' } },
+        { caller: { name: { contains: searchTerm, mode: 'insensitive' } } },
+        { caller: { phone: { contains: searchTerm, mode: 'insensitive' } } },
+      ],
+    });
+  }
+
   const result = await prisma.ambulanceRequest.findMany({
     where: { AND: andConditions },
     skip,
     take: limit,
     orderBy: { createdAt: 'desc' },
     include: {
-      caller: { select: { name: true, phone: true } },
-      driver: { include: { user: { select: { name: true, phone: true } } } },
+      caller: { select: { id: true, name: true, phone: true, email: true } },
+      driver: {
+        include: { user: { select: { name: true, phone: true } } },
+      },
       ambulance: true,
       hospital: true,
       payment: true,
@@ -75,42 +111,61 @@ const getAllRequests = async (filters: IEmergencyRequestFilter, options: { page?
   };
 };
 
-// ৩. ট্রানজ্যাকশন ব্যবহার করে ড্রাইভার ও অ্যাম্বুলেন্স অ্যাসাইন করা (Atomic Transaction)
-const assignDriverAndAmbulance = async (requestId: string, payload: { driverId: string; ambulanceId: string }) => {
-  return await prisma.$transaction(async (tx) => {
-    // রিকোয়েস্ট চেক
-    const request = await tx.ambulanceRequest.findUnique({
-      where: { id: requestId, isDeleted: false },
-    });
-    if (!request) throw new Error('Emergency request not found');
-    if (request.status === 'COMPLETED' || request.status === 'CANCELLED') {
-      throw new Error(`Cannot assign to a ${request.status} request`);
-    }
+// ৪. নির্দিষ্ট রিকোয়েস্ট দেখা
+const getRequestById = async (id: string): Promise<AmbulanceRequest | null> => {
+  const result = await prisma.ambulanceRequest.findUnique({
+    where: { id, isDeleted: false },
+    include: {
+      caller: { select: { id: true, name: true, phone: true, email: true } },
+      driver: {
+        include: { user: { select: { name: true, phone: true } } },
+      },
+      ambulance: true,
+      hospital: true,
+      payment: true,
+    },
+  });
 
-    // ড্রাইভার ও অ্যাম্বুলেন্স ফ্রি আছে কিনা চেক
-    const ambulance = await tx.ambulance.findUnique({ where: { id: payload.ambulanceId } });
-    if (!ambulance || !ambulance.isAvailable) {
-      throw new Error('Ambulance is not available or occupied');
-    }
+  if (!result) {
+    throw new Error('Emergency request not found');
+  }
 
-    const driver = await tx.driverProfile.findUnique({ where: { id: payload.driverId } });
-    if (!driver || !driver.isAvailable) {
-      throw new Error('Driver is currently unavailable');
-    }
+  return result;
+};
 
-    // ১. অ্যাম্বুলেন্সকে ব্যস্ত করা
-    await tx.ambulance.update({
-      where: { id: payload.ambulanceId },
-      data: { isAvailable: false },
-    });
+// ৫. ড্রাইভার এবং অ্যাম্বুলেন্স অ্যাসাইন করা (ADMIN)
+const assignDriver = async (
+  requestId: string,
+  payload: { driverId: string; ambulanceId: string }
+) => {
+  const request = await prisma.ambulanceRequest.findUnique({
+    where: { id: requestId, isDeleted: false },
+  });
 
-    // ২. ড্রাইভারকে ব্যস্ত করা
-    await tx.driverProfile.update({
-      where: { id: payload.driverId },
-      data: { isAvailable: false, ambulanceId: payload.ambulanceId },
-    });
+  if (!request) {
+    throw new Error('Emergency request not found');
+  }
 
-    // ৩. রিকোয়েস্ট আপডেট
+  // ড্রাইভার প্রোফাইল চেক
+  const driver = await prisma.driverProfile.findUnique({
+    where: { id: payload.driverId },
+  });
+
+  if (!driver) {
+    throw new Error('Driver profile not found');
+  }
+
+  // অ্যাম্বুলেন্স চেক
+  const ambulance = await prisma.ambulance.findUnique({
+    where: { id: payload.ambulanceId, isDeleted: false },
+  });
+
+  if (!ambulance) {
+    throw new Error('Ambulance not found');
+  }
+
+  // ট্রানজ্যাকশন: রিকোয়েস্ট আপডেট এবং ড্রাইভার ও অ্যাম্বুলেন্স বিজি (isAvailable: false) করা
+  const result = await prisma.$transaction(async (tx) => {
     const updatedRequest = await tx.ambulanceRequest.update({
       where: { id: requestId },
       data: {
@@ -119,74 +174,75 @@ const assignDriverAndAmbulance = async (requestId: string, payload: { driverId: 
         status: 'ASSIGNED',
       },
       include: {
+        driver: { include: { user: { select: { name: true, phone: true } } } },
         ambulance: true,
-        driver: { include: { user: true } },
       },
+    });
+
+    await tx.driverProfile.update({
+      where: { id: payload.driverId },
+      data: { isAvailable: false },
+    });
+
+    await tx.ambulance.update({
+      where: { id: payload.ambulanceId },
+      data: { isAvailable: false },
     });
 
     return updatedRequest;
   });
+
+  return result;
 };
 
-// ৪. স্ট্যাটাস পরিবর্তন (ড্রাইভার বা অ্যাডমিন)
-const updateRequestStatus = async (requestId: string, status: RequestStatus) => {
-  return await prisma.$transaction(async (tx) => {
-    const request = await tx.ambulanceRequest.findUnique({ where: { id: requestId } });
-    if (!request) throw new Error('Request not found');
+// ৬. ট্রিপ স্ট্যাটাস আপডেট করা (DRIVER / ADMIN)
+const updateStatus = async (requestId: string, status: RequestStatus) => {
+  const request = await prisma.ambulanceRequest.findUnique({
+    where: { id: requestId, isDeleted: false },
+  });
 
-    // ট্রিপ শেষ বা ক্যানসেল হলে ড্রাইভার ও অ্যাম্বুলেন্স পুনরায় এভেইলেবল করা
+  if (!request) {
+    throw new Error('Emergency request not found');
+  }
+
+  // ট্রানজ্যাকশন: ট্রিপ সম্পন্ন বা বাতিল হলে ড্রাইভার ও অ্যাম্বুলেন্স ফ্রি (isAvailable: true) করা
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedRequest = await tx.ambulanceRequest.update({
+      where: { id: requestId },
+      data: { status },
+      include: {
+        driver: true,
+        ambulance: true,
+      },
+    });
+
     if (status === 'COMPLETED' || status === 'CANCELLED') {
-      if (request.ambulanceId) {
-        await tx.ambulance.update({
-          where: { id: request.ambulanceId },
-          data: { isAvailable: true },
-        });
-      }
-
       if (request.driverId) {
         await tx.driverProfile.update({
           where: { id: request.driverId },
           data: { isAvailable: true },
         });
       }
+
+      if (request.ambulanceId) {
+        await tx.ambulance.update({
+          where: { id: request.ambulanceId },
+          data: { isAvailable: true },
+        });
+      }
     }
 
-    const result = await tx.ambulanceRequest.update({
-      where: { id: requestId },
-      data: { status },
-      include: { driver: true, ambulance: true },
-    });
-
-    return result;
+    return updatedRequest;
   });
-};
 
-// ৫. ইউজারের নিজস্ব ট্রিপ লিস্ট
-const getMyRequests = async (userId: string, role: string) => {
-  if (role === 'CALLER') {
-    return await prisma.ambulanceRequest.findMany({
-      where: { callerId: userId, isDeleted: false },
-      include: { ambulance: true, payment: true },
-      orderBy: { createdAt: 'desc' },
-    });
-  } else if (role === 'DRIVER') {
-    const driverProfile = await prisma.driverProfile.findUnique({ where: { userId } });
-    if (!driverProfile) throw new Error('Driver profile not found');
-
-    return await prisma.ambulanceRequest.findMany({
-      where: { driverId: driverProfile.id, isDeleted: false },
-      include: { caller: { select: { name: true, phone: true } }, ambulance: true },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  return [];
+  return result;
 };
 
 export const emergencyRequestService = {
-  createRequest,
-  getAllRequests,
-  assignDriverAndAmbulance,
-  updateRequestStatus,
+  createEmergencyRequest,
   getMyRequests,
+  getAllRequests,
+  getRequestById,
+  assignDriver,
+  updateStatus,
 };

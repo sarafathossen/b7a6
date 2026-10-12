@@ -1,6 +1,6 @@
-export type AmbulanceType = 'BASIC_LIFE_SUPPORT' | 'ADVANCED_LIFE_SUPPORT' | 'ICU_AMBULANCE';
+import { AmbulanceType } from '@prisma/client';
 
-export type IAmbulanceFilterRequest = {
+export type IAmbulanceFilter = {
   searchTerm?: string;
   type?: AmbulanceType;
   isAvailable?: boolean;

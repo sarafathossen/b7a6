@@ -3,12 +3,24 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { emergencyRequestService } from './emergencyRequest.service';
 
-const createRequest = catchAsync(async (req: Request & { user?: any }, res: Response) => {
-  const result = await emergencyRequestService.createRequest(req.user.id, req.body);
+const createEmergencyRequest = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const result = await emergencyRequestService.createEmergencyRequest(userId, req.body);
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'Emergency ambulance request placed successfully',
+    message: 'Emergency request created successfully',
+    data: result,
+  });
+});
+
+const getMyRequests = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const result = await emergencyRequestService.getMyRequests(userId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'My emergency requests retrieved successfully',
     data: result,
   });
 });
@@ -28,52 +40,47 @@ const getAllRequests = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Emergency requests fetched successfully',
+    message: 'Emergency requests retrieved successfully',
     meta: result.meta,
     data: result.data,
   });
 });
 
-const assignDriverAndAmbulance = catchAsync(async (req: Request, res: Response) => {
-  const result = await emergencyRequestService.assignDriverAndAmbulance(
-    req.params.id as string,
-    req.body
-  );
+const getRequestById = catchAsync(async (req: Request, res: Response) => {
+  const result = await emergencyRequestService.getRequestById(req.params.id as string);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Driver and Ambulance assigned successfully via transaction',
+    message: 'Emergency request retrieved successfully',
     data: result,
   });
 });
 
-const updateRequestStatus = catchAsync(async (req: Request, res: Response) => {
-  const result = await emergencyRequestService.updateRequestStatus(
-    req.params.id as string,
-    req.body.status
-  );
+const assignDriver = catchAsync(async (req: Request, res: Response) => {
+  const result = await emergencyRequestService.assignDriver(req.params.id as string, req.body);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: `Request status transitioned to ${req.body.status}`,
+    message: 'Driver and ambulance assigned successfully',
     data: result,
   });
 });
 
-const getMyRequests = catchAsync(async (req: Request & { user?: any }, res: Response) => {
-  const result = await emergencyRequestService.getMyRequests(req.user.id, req.user.role);
+const updateStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await emergencyRequestService.updateStatus(req.params.id as string, req.body.status);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'My emergency requests retrieved successfully',
+    message: 'Emergency request status updated successfully',
     data: result,
   });
 });
 
 export const emergencyRequestController = {
-  createRequest,
-  getAllRequests,
-  assignDriverAndAmbulance,
-  updateRequestStatus,
+  createEmergencyRequest,
   getMyRequests,
+  getAllRequests,
+  getRequestById,
+  assignDriver,
+  updateStatus,
 };

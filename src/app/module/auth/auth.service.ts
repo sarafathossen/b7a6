@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import prisma from '../../lib/prisma';
 import { ILoginUserResponse } from './auth.interface';
 
@@ -19,7 +19,10 @@ const registerUser = async (payload: any) => {
 
   const newUser = await prisma.user.create({
     data: {
-      ...payload,
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      role: payload.role || 'CALLER',
       password: hashedPassword,
     },
     select: {
@@ -32,7 +35,6 @@ const registerUser = async (payload: any) => {
     },
   });
 
-  // ইউজার যদি ড্রাইভার হিসেবে রেজিস্টার করে, তবে সাথে সাথে ড্রাইভার প্রোফাইল তৈরি হবে
   if (payload.role === 'DRIVER') {
     await prisma.driverProfile.create({
       data: {
@@ -59,25 +61,66 @@ const loginUser = async (payload: any): Promise<ILoginUserResponse> => {
     throw new Error('Invalid credentials');
   }
 
-  const token = jwt.sign(
+  // ১. Access Token জেনারেট করা
+  const accessToken = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET as string,
-    { expiresIn: '7d' }
+    (process.env.JWT_SECRET as string) || 'default_secret',
+    { expiresIn: (process.env.JWT_EXPIRES_IN as any) || '1d' }
+  );
+
+  // ২. Refresh Token জেনারেট করা
+  const refreshToken = jwt.sign(
+    { id: user.id, email: user.email, role: user.role },
+    (process.env.JWT_REFRESH_SECRET as string) || 'default_refresh_secret',
+    { expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN as any) || '30d' }
   );
 
   return {
-    token,
+    accessToken,
+    refreshToken,
     user: {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: user.role as any,
       phone: user.phone,
     },
+  };
+};
+
+// ৩. Refresh Token দিয়ে নতুন Access Token তৈরি করা
+const refreshToken = async (token: string) => {
+  let verifiedToken: any = null;
+  try {
+    verifiedToken = jwt.verify(
+      token,
+      (process.env.JWT_REFRESH_SECRET as string) || 'default_refresh_secret'
+    ) as JwtPayload;
+  } catch (err) {
+    throw new Error('Invalid refresh token');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: verifiedToken.id },
+  });
+
+  if (!user || user.isDeleted) {
+    throw new Error('User does not exist');
+  }
+
+  const newAccessToken = jwt.sign(
+    { id: user.id, email: user.email, role: user.role },
+    (process.env.JWT_SECRET as string) || 'default_secret',
+    { expiresIn: (process.env.JWT_EXPIRES_IN as any) || '1d' }
+  );
+
+  return {
+    accessToken: newAccessToken,
   };
 };
 
 export const authService = {
   registerUser,
   loginUser,
+  refreshToken,
 };

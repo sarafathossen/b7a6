@@ -25,7 +25,20 @@ const login = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const refreshToken = catchAsync(async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+  const result = await authService.refreshToken(refreshToken);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'New access token generated successfully',
+    data: result,
+  });
+});
+
 export const authController = {
   register,
   login,
+  refreshToken,
 };

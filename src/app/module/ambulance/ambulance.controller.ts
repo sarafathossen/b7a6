@@ -17,23 +17,29 @@ const getAllAmbulances = catchAsync(async (req: Request, res: Response) => {
   const filters = {
     searchTerm: req.query.searchTerm as string,
     type: req.query.type as any,
-    isAvailable: req.query.isAvailable ? req.query.isAvailable === 'true' : undefined,
+    isAvailable: req.query.isAvailable === undefined ? undefined : req.query.isAvailable === 'true',
   };
-  const result = await ambulanceService.getAllAmbulances(filters);
+  const options = {
+    page: Number(req.query.page),
+    limit: Number(req.query.limit),
+  };
+
+  const result = await ambulanceService.getAllAmbulances(filters, options);
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'Ambulances fetched successfully',
-    data: result,
+    meta: result.meta,
+    data: result.data,
   });
 });
 
-const getSingleAmbulance = catchAsync(async (req: Request, res: Response) => {
-  const result = await ambulanceService.getSingleAmbulance(req.params.id as string);
+const getAmbulanceById = catchAsync(async (req: Request, res: Response) => {
+  const result = await ambulanceService.getAmbulanceById(req.params.id as string);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Ambulance fetched successfully',
+    message: 'Ambulance retrieved successfully',
     data: result,
   });
 });
@@ -53,7 +59,7 @@ const deleteAmbulance = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Ambulance soft deleted successfully',
+    message: 'Ambulance deleted successfully',
     data: result,
   });
 });
@@ -61,7 +67,7 @@ const deleteAmbulance = catchAsync(async (req: Request, res: Response) => {
 export const ambulanceController = {
   createAmbulance,
   getAllAmbulances,
-  getSingleAmbulance,
+  getAmbulanceById,
   updateAmbulance,
   deleteAmbulance,
 };

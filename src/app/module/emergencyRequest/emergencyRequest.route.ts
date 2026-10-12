@@ -6,34 +6,33 @@ import { emergencyRequestValidation } from './emergencyRequest.validation';
 
 const router = express.Router();
 
-// ১. কলার জরুরি রিকোয়েস্ট করবে
 router.post(
   '/',
   auth('CALLER'),
   validateRequest(emergencyRequestValidation.createEmergencyRequestZodSchema),
-  emergencyRequestController.createRequest
+  emergencyRequestController.createEmergencyRequest
 );
 
-// ২. অ্যাডমিন সব রিকোয়েস্ট ফিল্টারিং ও পেজিনেশন সহ দেখবে
+router.get('/my-requests', auth('CALLER'), emergencyRequestController.getMyRequests);
+
 router.get('/', auth('ADMIN'), emergencyRequestController.getAllRequests);
 
-// ৩. ইউজার/ড্রাইভার নিজের ট্রিপ লিস্ট দেখবে
-router.get('/my-requests', auth('CALLER', 'DRIVER'), emergencyRequestController.getMyRequests);
+router.get('/:id', auth('CALLER', 'DRIVER', 'ADMIN'), emergencyRequestController.getRequestById);
 
-// ৪. অ্যাডমিন ড্রাইভার ও গাড়ি অ্যাসাইন করবে (ট্রানজ্যাকশন)
-router.post(
+// ড্রাইভার ও অ্যাম্বুলেন্স অ্যাসাইন (ADMIN)
+router.patch(
   '/:id/assign',
   auth('ADMIN'),
   validateRequest(emergencyRequestValidation.assignDriverZodSchema),
-  emergencyRequestController.assignDriverAndAmbulance
+  emergencyRequestController.assignDriver
 );
 
-// ৫. ড্রাইভার বা অ্যাডমিন ট্রিপ স্ট্যাটাস আপডেট করবে
+// ট্রিপ স্ট্যাটাস আপডেট (DRIVER, ADMIN)
 router.patch(
   '/:id/status',
   auth('DRIVER', 'ADMIN'),
   validateRequest(emergencyRequestValidation.updateStatusZodSchema),
-  emergencyRequestController.updateRequestStatus
+  emergencyRequestController.updateStatus
 );
 
 export const emergencyRequestRoutes = router;

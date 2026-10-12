@@ -6,7 +6,6 @@ import { ambulanceValidation } from './ambulance.validation';
 
 const router = express.Router();
 
-// শুধু ADMIN নতুন অ্যাম্বুলেন্স তৈরি করতে পারবে
 router.post(
   '/',
   auth('ADMIN'),
@@ -14,11 +13,10 @@ router.post(
   ambulanceController.createAmbulance
 );
 
-// সবাই দেখতে পারবে
 router.get('/', ambulanceController.getAllAmbulances);
-router.get('/:id', ambulanceController.getSingleAmbulance);
 
-// শুধু ADMIN আপডেট ও ডিলিট করতে পারবে
+router.get('/:id', ambulanceController.getAmbulanceById);
+
 router.patch(
   '/:id',
   auth('ADMIN'),

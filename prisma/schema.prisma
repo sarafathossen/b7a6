@@ -36,6 +36,12 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum PaymentMethod {
+  BKASH
+  STRIPE
+  CASH
+}
+
 enum AmbulanceType {
   BASIC_LIFE_SUPPORT
   ADVANCED_LIFE_SUPPORT
@@ -134,7 +140,7 @@ model Payment {
   user          User             @relation(fields: [userId], references: [id])
   amount        Float
   transactionId String           @unique
-  paymentMethod String           @default("STRIPE")
+  paymentMethod PaymentMethod    @default(BKASH)
   status        PaymentStatus    @default(PENDING)
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
