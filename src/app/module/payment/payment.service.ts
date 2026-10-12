@@ -9,7 +9,7 @@ const bkashConfig = {
   password: process.env.BKASH_PASSWORD || 'sandboxTokenizedUser02@12345',
 };
 
-// ১. bKash Grant Token
+
 const getBkashHeaders = async () => {
   const { data } = await axios.post(
     `${bkashConfig.base_url}/tokenized/checkout/token/grant`,
@@ -35,7 +35,7 @@ const getBkashHeaders = async () => {
   };
 };
 
-// ২. Create Payment (bKash Payment URL তৈরি)
+
 const initiatePayment = async (userId: string, requestId: string) => {
   const emergencyRequest = await prisma.ambulanceRequest.findUnique({
     where: { id: requestId, isDeleted: false },
@@ -61,7 +61,7 @@ const initiatePayment = async (userId: string, requestId: string) => {
   const headers = await getBkashHeaders();
   const invoiceNumber = `INV-${Date.now()}`;
 
-  // বিকাশের অফিসিয়াল Create Payment এপিআই কল
+  
   const { data } = await axios.post(
     `${bkashConfig.base_url}/tokenized/checkout/create`,
     {
@@ -80,7 +80,7 @@ const initiatePayment = async (userId: string, requestId: string) => {
     throw new Error(data?.statusMessage || 'Failed to generate bKash payment URL');
   }
 
-  // ডাটাবেজে রেকর্ড রাখা
+  
   if (existingPayment) {
     await prisma.payment.update({
       where: { requestId },
@@ -105,12 +105,12 @@ const initiatePayment = async (userId: string, requestId: string) => {
   }
 
   return {
-    paymentUrl: data.bkashURL, // এই লিংকটি ব্রাউজারে বিকাশ পেজ নিয়ে যাবে
+    paymentUrl: data.bkashURL, 
     paymentID: data.paymentID,
   };
 };
 
-// ৩. Execute Payment (পিন দেওয়ার পর কলব্যাক প্রসেস)
+
 const executeBkashPayment = async (paymentID: string, status: string, requestId: string) => {
   if (status === 'cancel' || status === 'failure') {
     await prisma.payment.update({
