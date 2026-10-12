@@ -1,6 +1,6 @@
 import prisma from '../../lib/prisma';
 
-// ১. ড্রাইভার প্রোফাইল তৈরি (DRIVER রোলের ইউজার নিজের প্রোফাইল তৈরি করবে)
+
 const createDriverProfile = async (userId: string, payload: { licenseNumber: string; ambulanceId?: string }) => {
   const user = await prisma.user.findUnique({
     where: { id: userId, isDeleted: false },
@@ -44,7 +44,7 @@ const createDriverProfile = async (userId: string, payload: { licenseNumber: str
   return result;
 };
 
-// ২. সব ড্রাইভার ফেচ (ADMIN এর জন্য)
+
 const getAllDrivers = async (filters: { isAvailable?: boolean; searchTerm?: string }, options: { page?: number; limit?: number }) => {
   const page = Number(options.page) || 1;
   const limit = Number(options.limit) || 10;
@@ -85,7 +85,7 @@ const getAllDrivers = async (filters: { isAvailable?: boolean; searchTerm?: stri
   };
 };
 
-// ৩. নিজের ড্রাইভার প্রোফাইল দেখা
+
 const getMyDriverProfile = async (userId: string) => {
   const result = await prisma.driverProfile.findUnique({
     where: { userId },
@@ -107,7 +107,7 @@ const getMyDriverProfile = async (userId: string) => {
   return result;
 };
 
-// ৪. ড্রাইভার প্রোফাইল ও অ্যাম্বুলেন্স লিঙ্ক/আনলিঙ্ক আপডেট
+
 const updateDriverProfile = async (id: string, payload: { licenseNumber?: string; isAvailable?: boolean; ambulanceId?: string | null }) => {
   const profile = await prisma.driverProfile.findUnique({
     where: { id },
