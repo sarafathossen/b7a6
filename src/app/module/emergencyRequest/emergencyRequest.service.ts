@@ -2,7 +2,7 @@ import { AmbulanceRequest, Prisma, RequestStatus } from '@prisma/client';
 import prisma from '../../lib/prisma';
 import { IEmergencyRequestFilter } from './emergencyRequest.interface';
 
-// ১. কলারের নতুন রিকোয়েস্ট তৈরি
+
 const createEmergencyRequest = async (
   callerId: string,
   payload: {
@@ -34,7 +34,7 @@ const createEmergencyRequest = async (
   return result;
 };
 
-// ২. কলারের নিজের সব রিকোয়েস্ট দেখা
+
 const getMyRequests = async (callerId: string) => {
   const result = await prisma.ambulanceRequest.findMany({
     where: { callerId, isDeleted: false },
@@ -54,7 +54,7 @@ const getMyRequests = async (callerId: string) => {
   return result;
 };
 
-// ৩. সব রিকোয়েস্ট ফেচ করা (ADMIN)
+
 const getAllRequests = async (
   filters: IEmergencyRequestFilter,
   options: { page?: number; limit?: number }
@@ -111,7 +111,7 @@ const getAllRequests = async (
   };
 };
 
-// ৪. নির্দিষ্ট রিকোয়েস্ট দেখা
+
 const getRequestById = async (id: string): Promise<AmbulanceRequest | null> => {
   const result = await prisma.ambulanceRequest.findUnique({
     where: { id, isDeleted: false },
@@ -133,7 +133,7 @@ const getRequestById = async (id: string): Promise<AmbulanceRequest | null> => {
   return result;
 };
 
-// ৫. ড্রাইভার এবং অ্যাম্বুলেন্স অ্যাসাইন করা (ADMIN)
+
 const assignDriver = async (
   requestId: string,
   payload: { driverId: string; ambulanceId: string }
@@ -195,7 +195,7 @@ const assignDriver = async (
   return result;
 };
 
-// ৬. ট্রিপ স্ট্যাটাস আপডেট করা (DRIVER / ADMIN)
+
 const updateStatus = async (requestId: string, status: RequestStatus) => {
   const request = await prisma.ambulanceRequest.findUnique({
     where: { id: requestId, isDeleted: false },
