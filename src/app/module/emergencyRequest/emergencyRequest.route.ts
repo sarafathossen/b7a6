@@ -19,7 +19,7 @@ router.get('/', auth('ADMIN'), emergencyRequestController.getAllRequests);
 
 router.get('/:id', auth('CALLER', 'DRIVER', 'ADMIN'), emergencyRequestController.getRequestById);
 
-// ড্রাইভার ও অ্যাম্বুলেন্স অ্যাসাইন (ADMIN)
+
 router.patch(
   '/:id/assign',
   auth('ADMIN'),
@@ -27,7 +27,7 @@ router.patch(
   emergencyRequestController.assignDriver
 );
 
-// ট্রিপ স্ট্যাটাস আপডেট (DRIVER, ADMIN)
+
 router.patch(
   '/:id/status',
   auth('DRIVER', 'ADMIN'),
