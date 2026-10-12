@@ -3,7 +3,7 @@ import prisma from '../../lib/prisma';
 import { IUserFilter, IUserRole } from './user.interface';
 
 
-// ১. নিজের প্রোফাইল দেখা
+
 const getMyProfile = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId, isDeleted: false },
@@ -26,7 +26,7 @@ const getMyProfile = async (userId: string) => {
   return user;
 };
 
-// ২. প্রোফাইল তথ্য আপডেট
+
 const updateProfile = async (userId: string, payload: { name?: string; phone?: string }) => {
   const user = await prisma.user.findUnique({
     where: { id: userId, isDeleted: false },
@@ -52,7 +52,7 @@ const updateProfile = async (userId: string, payload: { name?: string; phone?: s
   return result;
 };
 
-// ৩. সব ইউজার ফেচ করা (ADMIN)
+
 const getAllUsers = async (filters: IUserFilter, options: { page?: number; limit?: number }) => {
   const { searchTerm, role } = filters;
   const page = Number(options.page) || 1;
@@ -100,7 +100,7 @@ const getAllUsers = async (filters: IUserFilter, options: { page?: number; limit
   };
 };
 
-// ৪. ইউজারের রোল পরিবর্তন (ADMIN)
+
 const changeUserRole = async (userId: string, role: IUserRole) => {
   const user = await prisma.user.findUnique({
     where: { id: userId, isDeleted: false },
@@ -124,7 +124,7 @@ const changeUserRole = async (userId: string, role: IUserRole) => {
   return result;
 };
 
-// ৫. সফট ডিলিট (ADMIN)
+
 const deleteUser = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId, isDeleted: false },
