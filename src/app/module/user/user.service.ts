@@ -1,6 +1,7 @@
-import { Prisma, User, UserRole } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import prisma from '../../lib/prisma';
-import { IUserFilter } from './user.interface';
+import { IUserFilter, IUserRole } from './user.interface';
+
 
 // ১. নিজের প্রোফাইল দেখা
 const getMyProfile = async (userId: string) => {
@@ -100,7 +101,7 @@ const getAllUsers = async (filters: IUserFilter, options: { page?: number; limit
 };
 
 // ৪. ইউজারের রোল পরিবর্তন (ADMIN)
-const changeUserRole = async (userId: string, role: UserRole) => {
+const changeUserRole = async (userId: string, role: IUserRole) => {
   const user = await prisma.user.findUnique({
     where: { id: userId, isDeleted: false },
   });
