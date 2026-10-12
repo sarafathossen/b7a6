@@ -1,0 +1,141 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CALLER
+  DRIVER
+  ADMIN
+}
+
+enum RequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RequestStatus {
+  PENDING
+  ASSIGNED
+  EN_ROUTE
+  PICKED_UP
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum AmbulanceType {
+  BASIC_LIFE_SUPPORT
+  ADVANCED_LIFE_SUPPORT
+  ICU_AMBULANCE
+}
+
+model User {
+  id                String             @id @default(uuid())
+  name              String
+  email             String             @unique
+  password          String
+  role              Role               @default(CALLER)
+  phone             String
+  isDeleted         Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  driverProfile     DriverProfile?
+  ambulanceRequests AmbulanceRequest[] @relation("CallerRequests")
+  payments          Payment[]
+
+  @@index([email])
+}
+
+model DriverProfile {
+  id               String             @id @default(uuid())
+  userId           String             @unique
+  user             User               @relation(fields: [userId], references: [id])
+  licenseNumber    String             @unique
+  isAvailable      Boolean            @default(true)
+  ambulanceId      String?            @unique
+  ambulance        Ambulance?         @relation(fields: [ambulanceId], references: [id])
+  assignedRequests AmbulanceRequest[] @relation("DriverRequests")
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model Ambulance {
+  id            String             @id @default(uuid())
+  vehicleNumber String             @unique
+  type          AmbulanceType      @default(BASIC_LIFE_SUPPORT)
+  basePrice     Float
+  isAvailable   Boolean            @default(true)
+  driverProfile DriverProfile?
+  requests      AmbulanceRequest[]
+  isDeleted     Boolean            @default(false)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([isAvailable, type])
+}
+
+model Hospital {
+  id                String             @id @default(uuid())
+  name              String
+  address           String
+  contactNumber     String
+  emergencyUnits    Int                @default(5)
+  isDeleted         Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  ambulanceRequests AmbulanceRequest[]
+}
+
+model AmbulanceRequest {
+  id                  String          @id @default(uuid())
+  callerId            String
+  caller              User            @relation("CallerRequests", fields: [callerId], references: [id])
+  driverId            String?
+  driver              DriverProfile?  @relation("DriverRequests", fields: [driverId], references: [id])
+  ambulanceId         String?
+  ambulance           Ambulance?      @relation(fields: [ambulanceId], references: [id])
+  hospitalId          String?
+  hospital            Hospital?       @relation(fields: [hospitalId], references: [id])
+  
+  pickupAddress       String
+  destinationAddress  String
+  priority            RequestPriority @default(HIGH)
+  status              RequestStatus   @default(PENDING)
+  totalAmount         Float
+  
+  payment             Payment?
+  isDeleted           Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([status, priority])
+  @@index([callerId])
+}
+
+model Payment {
+  id            String           @id @default(uuid())
+  requestId     String           @unique
+  request       AmbulanceRequest @relation(fields: [requestId], references: [id])
+  userId        String
+  user          User             @relation(fields: [userId], references: [id])
+  amount        Float
+  transactionId String           @unique
+  paymentMethod String           @default("STRIPE")
+  status        PaymentStatus    @default(PENDING)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
