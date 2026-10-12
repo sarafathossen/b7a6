@@ -6,6 +6,3 @@ const initiatePaymentValidationSchema = z.object({
   }),
 });
 
-export const paymentValidation = {
-  initiatePaymentValidationSchema,
-};
