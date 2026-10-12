@@ -17,3 +17,7 @@ const updateAmbulanceZodSchema = z.object({
   }),
 });
 
+export const ambulanceValidation = {
+  createAmbulanceZodSchema,
+  updateAmbulanceZodSchema,
+};

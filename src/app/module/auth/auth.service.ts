@@ -61,14 +61,14 @@ const loginUser = async (payload: any): Promise<ILoginUserResponse> => {
     throw new Error('Invalid credentials');
   }
 
-  // ১. Access Token জেনারেট করা
+  
   const accessToken = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     (process.env.JWT_SECRET as string) || 'default_secret',
     { expiresIn: (process.env.JWT_EXPIRES_IN as any) || '1d' }
   );
 
-  // ২. Refresh Token জেনারেট করা
+  
   const refreshToken = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     (process.env.JWT_REFRESH_SECRET as string) || 'default_refresh_secret',
@@ -88,7 +88,7 @@ const loginUser = async (payload: any): Promise<ILoginUserResponse> => {
   };
 };
 
-// ৩. Refresh Token দিয়ে নতুন Access Token তৈরি করা
+
 const refreshToken = async (token: string) => {
   let verifiedToken: any = null;
   try {
