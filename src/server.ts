@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 
 async function main() {
   try {
-    // Redis কানেকশন ও পিং টেস্ট
+    
     const pong = await redis.ping();
     console.log('⚡ Redis Ping Status:', pong);
 
