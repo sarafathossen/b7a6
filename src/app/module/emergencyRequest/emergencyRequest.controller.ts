@@ -76,6 +76,16 @@ const updateStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const cancelRequest = catchAsync(async (req: Request, res: Response) => {
+  const result = await emergencyRequestService.updateStatus(req.params.id as string, 'CANCELLED');
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Emergency request cancelled successfully',
+    data: result,
+  });
+});
+
 export const emergencyRequestController = {
   createEmergencyRequest,
   getMyRequests,
@@ -83,4 +93,5 @@ export const emergencyRequestController = {
   getRequestById,
   assignDriver,
   updateStatus,
+  cancelRequest,
 };

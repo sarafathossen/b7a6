@@ -24,4 +24,6 @@ router.patch(
   driverController.updateDriverProfile
 );
 
+
+
 export const driverRoutes = router;

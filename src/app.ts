@@ -1,6 +1,7 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import router from './app/routes/index';
+import globalErrorHandler from './app/middleware/globalErrorHandler';
 
 const app: Application = express();
 
@@ -8,10 +9,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// অ্যাপ্লিকেশন রুট
+
 app.use('/api/v1', router);
 
-// টেস্ট রুট
+
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
@@ -19,7 +20,7 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// ৪MD - Not Found Handler
+
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
@@ -33,13 +34,7 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-// Global Error Handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || 'Something went wrong!',
-    errors: err,
-  });
-});
+
+app.use(globalErrorHandler);
 
 export default app;
