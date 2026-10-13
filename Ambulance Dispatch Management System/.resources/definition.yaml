@@ -1,0 +1,5 @@
+$kind: collection
+description: Complete Postman Collection for Level 2 Assignment
+variables:
+  baseUrl: http://localhost:5000
+  token: ""

@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/payments/bkash-callback?paymentID=TEST_ID&status=success&requestId=REQUEST_ID"
+method: GET
+order: 2000

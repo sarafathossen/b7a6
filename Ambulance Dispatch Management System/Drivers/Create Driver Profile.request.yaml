@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/drivers/create-profile"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "licenseNumber": "DL-KHULNA-2026-9901",
+      "ambulanceId": "AMBULANCE_ID"
+    }
+order: 1000

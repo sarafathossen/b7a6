@@ -1,0 +1,14 @@
+$kind: http-request
+name: Update Request Status (Driver/Admin)
+url: "{{baseUrl}}/api/v1/emergency-requests/REQUEST_ID/status"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "status": "COMPLETED"
+    }
+order: 5000

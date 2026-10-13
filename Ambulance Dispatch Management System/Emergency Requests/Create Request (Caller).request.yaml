@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/emergency-requests"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "pickupAddress": "Satkhira Sadar Hospital",
+      "destinationAddress": "Khulna Medical College Hospital",
+      "priority": "HIGH",
+      "totalAmount": 2500
+    }
+order: 1000

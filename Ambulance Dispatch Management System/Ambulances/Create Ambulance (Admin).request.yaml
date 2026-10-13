@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/ambulances"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "vehicleNumber": "DHAKA-METRO-CHA-11-2233",
+      "type": "ICU_AMBULANCE",
+      "basePrice": 3500
+    }
+order: 1000

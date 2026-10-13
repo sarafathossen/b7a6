@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/emergency-requests?page=1&limit=10"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+order: 3000

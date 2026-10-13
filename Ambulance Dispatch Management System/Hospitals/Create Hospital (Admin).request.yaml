@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/hospitals"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "name": "Satkhira Central Hospital",
+      "address": "Sadar Hospital Road, Satkhira",
+      "contactNumber": "01750187656",
+      "emergencyUnits": 6
+    }
+order: 1000

@@ -1,6 +1,7 @@
 import app from './app';
 import dotenv from 'dotenv';
 import redis from './app/lib/redis';
+import { seedDefaultUsers } from './app/DB/seed';
 
 dotenv.config();
 
@@ -11,6 +12,9 @@ async function main() {
     // Redis কানেকশন ও পিং টেস্ট
     const pong = await redis.ping();
     console.log('⚡ Redis Ping Status:', pong);
+
+
+    await seedDefaultUsers();
 
     app.listen(port, () => {
       console.log(`🚀 Server running on http://localhost:${port}`);

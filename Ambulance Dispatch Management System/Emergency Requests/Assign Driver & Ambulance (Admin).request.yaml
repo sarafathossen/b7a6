@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/emergency-requests/REQUEST_ID/assign"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "driverId": "DRIVER_PROFILE_ID",
+      "ambulanceId": "AMBULANCE_ID"
+    }
+order: 4000

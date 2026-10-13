@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/drivers/my-profile"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+order: 2000
